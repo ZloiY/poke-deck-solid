@@ -1,6 +1,8 @@
 import { children, JSXElement } from "solid-js";
 import { Title } from "solid-start";
 
+import { NotificationsPopups } from "../NotificationPopup";
+
 interface LayoutProps {
   children: JSXElement;
   title: string;
@@ -11,6 +13,7 @@ export const Layout = (props: LayoutProps) => {
   return (
     <main class="bg-purple-500 h-full w-full relative overflow-y-scroll">
       <Title>{props.title}</Title>
+      <NotificationsPopups/>
       {c()}
     </main>
   )

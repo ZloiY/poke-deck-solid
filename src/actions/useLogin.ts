@@ -1,8 +1,8 @@
 import sha256 from "crypto-js/sha256";
-import { redirect } from "solid-start";
+import { redirect } from "solid-start/server";
 import { v4 } from "uuid";
+import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
 import { prisma } from "../db";
-import { cookieSessionStorage } from "./cookieSessionStorage";
 
 export const useLogin = async (validatedCreds: { username: string, password: string }) => {
   try {
@@ -14,8 +14,8 @@ export const useLogin = async (validatedCreds: { username: string, password: str
     if (hash == user.hash) {
       const session = await cookieSessionStorage.getSession();
       session.set("id", user.id);
-      session.set("name", user.name);
-      redirect("/home", {
+      session.set("name", user.id);
+      return redirect("/home", {
         headers: {
           "Set-Cookie": await cookieSessionStorage.commitSession(session),
         }

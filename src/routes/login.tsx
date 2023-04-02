@@ -1,20 +1,17 @@
 import { createEffect } from "solid-js";
 import { A } from "@solidjs/router";
-import sha256 from "crypto-js/sha256";
-import { v4 } from "uuid";
 import { z } from "zod";
 import { FormError } from "solid-start/data";
 import {
   createServerAction$, redirect,
 } from "solid-start/server";
 
-import { prisma } from "~/db";
 import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { Layout } from "~/components/layouts/Layout";
 import { Welcome } from "~/components/Welcome";
-import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
-import { useLogin } from "~/utils/useLogin";
+import { useLogin } from "../actions/useLogin";
+import { pushNewNotification } from "~/utils/notificationStore";
 
 export default function Login() {
   const [loggingIn, { Form }] = createServerAction$(async (form: FormData) => {
@@ -31,7 +28,7 @@ export default function Login() {
       password: z.string()
         .min(8, { message: "Password should be at least has 6 symbols" })
         .max(16, { message: "Password can't be longer than 16 symbols" })
-        .regex(/[\w(@|#|$|&|!)+]{8}/,
+        .regex(/^[\w]+(!|\$|#|@|&)+$/,
         { message: `Password should contain letters, numbers and at least one of this
         '@', '#', '$', '&', '!'` })
     }).safeParse(fields);
@@ -47,9 +44,11 @@ export default function Login() {
   });
 
   createEffect(() => {
-    if (loggingIn.result && loggingIn.result.state == "Failure") {
+    if (loggingIn.result && "state" in loggingIn.result && loggingIn.result.state == "Failure") {
+      pushNewNotification(loggingIn.result);
     }
   }, loggingIn.result)
+
 
   return (
    <Layout title="PokeDek LogIn">

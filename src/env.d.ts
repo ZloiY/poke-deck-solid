@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 interface ImportMetaEnv {
   NODE_ENV: "development" | "production";
   AUTH_SECRET: string;

@@ -9,28 +9,25 @@ const alphabet = [
   [48, 57],
   [60, 90],
   [97, 122],
-] as const;
+].map(([firstCharCode, lastCharCode]) => {
+  let currentCharCode: number = firstCharCode;
+  const chars: string[] = [];
+  while (currentCharCode != lastCharCode) {
+    chars.push(String.fromCharCode(currentCharCode));
+    currentCharCode++;
+  }
+  return chars;
+}).flat();
 
-const passwordRegEx = /[\w(@|#|$|&)+]{8}/g;
+const passwordRegEx = /^[\w]+(!|\$|#|@|&)+$/g;
 
 const saltGeneration = () => {
-  const charAlphabet = alphabet
-    .map(([firstCharCode, lastCharCode]) => {
-      let currentCharCode: number = firstCharCode;
-      const chars: string[] = [];
-      while (currentCharCode != lastCharCode) {
-        chars.push(String.fromCharCode(currentCharCode));
-        currentCharCode++;
-      }
-      return chars;
-    })
-    .flat();
   const saltLength = Array.from(
     Array(Math.floor(Math.random() * (10 - 6) + 6)).keys()
   );
   return saltLength
     .map(
-      () => charAlphabet[Math.floor(Math.random() * (charAlphabet.length - 1))]
+      () => alphabet[Math.floor(Math.random() * (alphabet.length - 1))]
     )
     .join("");
 };
@@ -40,7 +37,7 @@ export const authRouter = createTRPCRouter({
     .input(
       z.object({
         username: z.string().min(3),
-        password: z.string().regex(passwordRegEx),
+        password: z.string().min(8).max(16).regex(passwordRegEx),
         repeatPassword: z.string().regex(passwordRegEx),
       })
     )
@@ -49,11 +46,10 @@ export const authRouter = createTRPCRouter({
         return {
           id: v4(),
           state: "Failure",
-          message: "Password are not the same",
+          message: "Passwords are not the same",
         };
       }
       const salt = saltGeneration();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const hash: string = sha256(`${input.password}${salt}`).toString();
       try {
         const user = await ctx.prisma.user.create({
