@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsxImportSource": "solid-js",
+    "jsx": "preserve",
+    "strict": true,
+    "types": ["solid-start/env", "vite-plugin-solid-svg/types"],
+    "baseUrl": "./",
+    "paths": {
+      "~/*": ["./src/*"],
+      "@icons/*": ["./src/icons/*"]
+    }
+  }
+}

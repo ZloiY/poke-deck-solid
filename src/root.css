@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-coiny: "Coiny";
+  --font-modak: "Modak";
+  --font-fredoka: "Fredoka";
+}
+
+html {
+  @apply h-full overflow-y-hidden;
+}
+
+body {
+  @apply font-fredoka bg-purple-500 text-white h-full overflow-y-hidden;
+}
+

@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DB_URL")
+  relationMode      = "prisma"
+}
+
+model User {
+  id    String @id @default(cuid())
+  name  String @unique
+  salt  String
+  hash  String
+  decks Deck[]
+}
+
+model Deck {
+  id         String    @id @default(cuid())
+  name       String
+  private    Boolean
+  isEmpty    Boolean
+  isFull     Boolean
+  deckLength Int
+  userId     String
+  deck       Pokemon[]
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Pokemon {
+  id       String @id @default(cuid())
+  name     String
+  imageUrl String
+  deckId   String
+  deck     Deck   @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@index([deckId])
+}
+
