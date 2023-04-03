@@ -14,7 +14,7 @@ export const useLogin = async (validatedCreds: { username: string, password: str
     if (hash == user.hash) {
       const session = await cookieSessionStorage.getSession();
       session.set("id", user.id);
-      session.set("name", user.id);
+      session.set("name", user.name);
       return redirect("/home", {
         headers: {
           "Set-Cookie": await cookieSessionStorage.commitSession(session),

@@ -9,6 +9,7 @@ import { Button } from "~/components/Button";
 import { Input } from "~/components/Input";
 import { Layout } from "~/components/layouts/Layout";
 import { Welcome } from "~/components/Welcome";
+import { pushNewNotification } from "~/utils/notificationStore";
 
 export default function Registration() {
   const [signinigUp, { Form }] = createServerAction$(async (form: FormData) => {
@@ -37,12 +38,16 @@ export default function Registration() {
 
   createEffect(() => {
     if (signinigUp.result?.state == "Success") {
+      pushNewNotification(signinigUp.result);
       const fields = {
         username: signinigUp.input?.get("username")?.toString() ?? "",
         password: signinigUp.input?.get("password")?.toString() ?? "",
       };
      singIn(fields)
        .then((maybeMessage) => {
+           if ("state" in maybeMessage) {
+             pushNewNotification(maybeMessage)
+           }
        });
     }
   }, signinigUp.result)

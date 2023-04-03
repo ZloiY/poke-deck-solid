@@ -6,7 +6,7 @@ import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from "../../trpc";
+} from "../trpc";
 
 export const pokemonRouter = createTRPCRouter({
   getPokemonList: publicProcedure

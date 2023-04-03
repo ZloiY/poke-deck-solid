@@ -7,7 +7,7 @@ import { initTRPC } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 
 import { prisma } from ".././db/index";
-import { cookieSessionStorage } from "src/utils/cookieSessionStorage";
+import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
 
 const pokemonApi = new PokemonClient();
 

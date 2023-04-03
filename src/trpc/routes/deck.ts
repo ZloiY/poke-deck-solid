@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import type { Deck, User } from "@prisma/client";
 
-import { createTRPCRouter, protectedProcedure } from "../../trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const deckRouter = createTRPCRouter({
   createDeck: protectedProcedure
