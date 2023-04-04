@@ -1,6 +1,5 @@
 import { PokemonClient } from "pokenode-ts";
 import superjson from "superjson";
-import { redirect } from "solid-start";
 import { ZodError } from "zod";
 
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -8,7 +7,6 @@ import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 
 import { prisma } from ".././db/index";
 import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
-import { TRPCClientError } from "@trpc/client";
 
 const pokemonApi = new PokemonClient();
 

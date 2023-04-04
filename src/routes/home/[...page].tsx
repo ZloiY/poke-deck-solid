@@ -1,6 +1,6 @@
 import { motion } from "@motionone/solid";
 import { Location, useIsRouting } from "@solidjs/router";
-import { createEffect, createMemo, createSignal, For } from "solid-js";
+import { createEffect, createMemo, createSignal, For, onMount } from "solid-js";
 import { createRouteData, refetchRouteData,
   RouteDataArgs,
   useLocation, useNavigate, useRouteData, useSearchParams } from "solid-start";
@@ -40,11 +40,7 @@ export function routeData({ location }: RouteDataArgs) {
 const totalLength = 1275;
 const limit = 15;
 const totalPages = Math.ceil(totalLength / limit);
-const log = (val, tag) => {
-  console.log(tag);
-  return val;
-};
-export default function Home() {
+export default function Home(props) {
   const pokemons = useRouteData<typeof routeData>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -55,6 +51,12 @@ export default function Home() {
   const hasNextPage = createMemo(() => page() < totalPages);
   const hasPrevPage = createMemo(() => page() > 0);
   const moveCards = motion;
+
+  onMount(() => {
+    if (props.user) {
+      trpc.deck.getEmptyUserDecks.query({ numberOfEmptySlots: 20 });
+    }
+  });
 
   createEffect(() => {
     if (!isRouting()) {
