@@ -17,4 +17,6 @@ type Message = {
 
 type FlipState = "Preview" | "Details";
 
+type LoadingState = "Hold" | "Started" | "Finished";
+
 type PaginationState = "Initial" | "Next" | "Prev";

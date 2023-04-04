@@ -13,7 +13,7 @@ export function routeData({ location }: RouteDataArgs) {
 export default function HomeLayout() {
   const user = useRouteData<typeof routeData>();
   return (
-    <HeaderLayout title="PokeDeck Home" user={user()}>
+    <HeaderLayout title="PokeDeck Home" showFlip={true} user={user()}>
       <Outlet/>
     </HeaderLayout>
   )

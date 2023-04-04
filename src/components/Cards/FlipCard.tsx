@@ -1,4 +1,6 @@
 import { createEffect, createSignal, lazy, mergeProps, Suspense } from "solid-js";
+import { spring } from "motion";
+import { motion } from "@motionone/solid";
 import { twMerge } from "tailwind-merge";
 
 import { PreviewCard } from "./PreviewCard";
@@ -13,6 +15,9 @@ export const FlipCard = (props: FlipCardProps) => {
       selectedPokemons: [],
       pokemonsInDeck: [],
   }, props);
+
+  const flipMotion = motion;
+
   const isSelected = !![...merged.selectedPokemons, ...merged.pokemonsInDeck]
     .find((selectedPokemon) => selectedPokemon.name == props.pokemon.name);
   const [isHovered, toggleHovered] = createSignal<FlipState>(
@@ -34,11 +39,38 @@ export const FlipCard = (props: FlipCardProps) => {
       onMouseEnter={() => toggleHovered("Details")}
       onMouseLeave={unHover}
     >
-      <div class={twMerge("z-10", isHovered() == "Details" && "opacity-0")}>
+      <div
+        class="z-10"
+        use:flipMotion={{
+          initial: { opacity: 0, rotateY: 0, },
+          animate: {
+            opacity: isHovered() == "Preview" ? 1 : 0,
+            perspective: "600px",
+            rotateY: isHovered() == "Preview" ? 0 : 180
+          },
+          transition: {
+            duration: 500,
+            easing: spring({ mass: 2, stiffness: 60 })
+          }
+        }}
+      >
         <PreviewCard pokemon={merged.pokemon}/>
       </div>
       <Suspense fallback={<PreviewCard pokemon={merged.pokemon}/>}>
-        <div class={twMerge("absolute top-0 z-30", isHovered() == "Preview" && "opacity-0")}>
+        <div class="absolute top-0 z-30"
+          use:flipMotion={{
+            initial: { opacity: 0, rotateY: 180 },
+            animate: {
+              opacity: isHovered() == "Details" ? 1 : 0,
+              perspective: "600px",
+              rotateY: isHovered() == "Details" ? 0 : 180,
+            },
+            transition: {
+              duration: 500,
+              easing: spring({ mass: 2, stiffness: 60 }),
+            }
+          }}
+        >
           <DetailsCard
             pokemon={merged.pokemon}
             selectedPokemons={merged.selectedPokemons}

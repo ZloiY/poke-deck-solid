@@ -1,22 +1,42 @@
-import { createEffect, For } from "solid-js";
+import { createEffect, For, onCleanup, onMount } from "solid-js";
 import { twMerge } from "tailwind-merge";
 
+import { Motion, createMotion } from "@motionone/solid";
 import Close from "@icons/close.svg";
 
-import { notifications, removeNotification } from "~/utils/notificationStore";
+import { notifications, pushNewNotification, removeNotification } from "~/utils/notificationStore";
+import { v4 } from "uuid";
 
 const Notification = (props: { message: Message }) => {
+  let ref!: HTMLDivElement;
+
+  onMount(() => {
+    createMotion(ref, {
+      animate: { opacity: [0, 1], scale: [0, 1] },
+      transition: { easing: "ease-in" }
+    });
+  });
+
+
   createEffect(() => {
+    const animateTimeoutId = setTimeout(() => {
+      createMotion(ref, {
+        animate: { opacity: [1, 0], height: "0px" },
+        transition: { easing: "ease-out" }
+      });
+    }, 5600);
     const timeoutId = setTimeout(() => {
       removeNotification(props.message);
     }, 6000);
     return () => {
+      clearTimeout(animateTimeoutId);
       clearTimeout(timeoutId);
     };
   }, props.message);
 
   return (
     <div
+      ref={ref}
       class={twMerge(
         "w-80 rounded-3xl text-white p-4 z-[110] backdrop-blur-md",
         props.message.state == "Success"
