@@ -10,7 +10,7 @@ const handler = (event: APIEvent) =>
     router: appRouter,
     createContext: createTRPCContext,
     onError:
-      import.meta.env.NODE_ENV === "development"
+      process.env.NODE_ENV === "development"
         ? ({ path, error }) => {
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,

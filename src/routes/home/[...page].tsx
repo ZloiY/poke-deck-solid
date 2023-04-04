@@ -1,7 +1,6 @@
-import { motion, Motion } from "@motionone/solid";
+import { motion } from "@motionone/solid";
 import { Location, useIsRouting } from "@solidjs/router";
-import { animate } from "motion";
-import { batch, createEffect, createMemo, createSignal, For } from "solid-js";
+import { createEffect, createMemo, createSignal, For } from "solid-js";
 import { createRouteData, refetchRouteData,
   RouteDataArgs,
   useLocation, useNavigate, useRouteData, useSearchParams } from "solid-start";
@@ -13,7 +12,6 @@ import { SearchBar } from "~/components/SearchBar";
 import { Spinner } from "~/components/Spinner";
 import { trpc } from "~/trpc/api";
 import { flipState } from "~/utils/flipStore";
-import { loadingState } from "~/utils/loadingStateStore";
 
 type PaginationState = "Initial" | "Next" | "Prev";
 

@@ -3,11 +3,12 @@ import superjson from "superjson";
 import { redirect } from "solid-start";
 import { ZodError } from "zod";
 
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 
 import { prisma } from ".././db/index";
 import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
+import { TRPCClientError } from "@trpc/client";
 
 const pokemonApi = new PokemonClient();
 
@@ -64,7 +65,7 @@ export const publicProcedure = t.procedure;
 
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session) {
-    throw redirect("/home");
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
