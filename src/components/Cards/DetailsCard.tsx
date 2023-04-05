@@ -9,6 +9,7 @@ import Delete from "@icons/delete.svg";
 
 import { BlankCard } from "./BlankCard";
 import { Switcher } from "../Switcher";
+import { selectPokemon, unSelectPokemon } from "~/utils/selectedPokemonsStore";
 
 export default function DetailsCard(props: {
   pokemon: Pokemon,
@@ -19,7 +20,8 @@ export default function DetailsCard(props: {
   removeFromDeck?: (pokemon: Pokemon) => void,
 }) {
   const [spriteKey, setSpriteKey] = createSignal(0);
-  const pokemonAdded = !!props.selectedPokemons?.find(({ name }) => name == props.pokemon.name);
+  const pokemonAdded = createMemo(() =>
+    !!props.selectedPokemons?.find(({ name }) => name == props.pokemon.name));
   const isDeckFull = (props.selectedPokemons?.length ?? 0) + (props.pokemonsInDeck?.length ?? 0)
     == +process.env.PUBLIC_DECK_MAX_SIZE!;
   const sprites = [
@@ -60,18 +62,18 @@ export default function DetailsCard(props: {
         )}
       >
         <Switch> 
-          <Match when={props.isSelected && pokemonAdded}>
+          <Match when={props.isSelected && pokemonAdded()}>
             <Remove
               role="button"
               class="absolute top-2 left-2 h-7 w-7 cursor-pointer text-red-500 hover:text-red-400 z-10"
-              onClick={() => removePokemon(props.pokemon)}
+              onClick={() => unSelectPokemon(props.pokemon)}
             />
           </Match>
           <Match when={!props.isSelected && !props.removeFromDeck && props.user && !isDeckFull}>
             <Add
               role="button"
               class="absolute top-2 left-2 h-7 w-7 cursor-pointer text-white hover:text-yellow-500 z-10"
-              onClick={() => pushPokemon(props.pokemon)}
+              onClick={() => selectPokemon(props.pokemon)}
             />
           </Match>
           <Match when={props.removeFromDeck}>

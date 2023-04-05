@@ -107,13 +107,13 @@ export const deckRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const numberOfSlots =
-        input.numberOfEmptySlots ?? +import.meta.env.DECK_MAX_SIZE;
+        input.numberOfEmptySlots ?? +process.env.DECK_MAX_SIZE;
       const userId = ctx.session.id;
       const decks = await ctx.prisma.deck.findMany({
         where: {
           userId,
           deckLength: {
-            lte: +import.meta.env.DECK_MAX_SIZE - numberOfSlots,
+            lte: +process.env.DECK_MAX_SIZE - numberOfSlots,
           },
         },
       });
@@ -127,7 +127,7 @@ export const deckRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const limit = input.limit ?? +import.meta.env.USER_MAX_DECKS;
+      const limit = input.limit ?? +process.env.USER_MAX_DECKS;
       const cursor = input.cursor ? { id: input.cursor } : undefined;
       const userId = ctx.session.user.id;
       const decks = await ctx.prisma.deck.findMany({
@@ -251,7 +251,7 @@ export const deckRouter = createTRPCRouter({
               (deck) =>
                 !deck.isFull &&
                 deck.deckLength + input.cards.length <=
-                  Number(import.meta.env.DECK_MAX_SIZE)
+                  Number(process.env.DECK_MAX_SIZE)
             )
             .map(
               async (deck) =>
@@ -263,7 +263,7 @@ export const deckRouter = createTRPCRouter({
                     isEmpty: false,
                     isFull:
                       deck.deckLength + input.cards.length ==
-                      Number(import.meta.env.DECK_MAX_SIZE),
+                      Number(process.env.DECK_MAX_SIZE),
                     deckLength: deck.deckLength + input.cards.length,
                     deck: { create: input.cards },
                   },

@@ -1,7 +1,6 @@
-import { createEffect, createSignal, lazy, mergeProps, Suspense } from "solid-js";
+import { createEffect, createMemo, createSignal, lazy, mergeProps, Suspense } from "solid-js";
 import { spring } from "motion";
 import { motion } from "@motionone/solid";
-import { twMerge } from "tailwind-merge";
 
 import { PreviewCard } from "./PreviewCard";
 const DetailsCard = lazy(() => import('./DetailsCard'));
@@ -18,17 +17,17 @@ export const FlipCard = (props: FlipCardProps) => {
 
   const flipMotion = motion;
 
-  const isSelected = !![...merged.selectedPokemons, ...merged.pokemonsInDeck]
-    .find((selectedPokemon) => selectedPokemon.name == props.pokemon.name);
+  const isSelected = createMemo(() => !![...merged.selectedPokemons, ...merged.pokemonsInDeck]
+    .find((selectedPokemon) => selectedPokemon.name == merged.pokemon.name));
   const [isHovered, toggleHovered] = createSignal<FlipState>(
-    isSelected ? "Details" : merged.keepFlipped
+    isSelected() ? "Details" : merged.keepFlipped
   )
   createEffect(() => {
-    toggleHovered(isSelected ? "Details" : merged.keepFlipped);
+    toggleHovered(isSelected() ? "Details" : merged.keepFlipped);
   })
 
   const unHover = () => {
-    if (merged.keepFlipped != "Details" && !isSelected) {
+    if (merged.keepFlipped != "Details" && !isSelected()) {
       toggleHovered("Preview");
     }
   };
@@ -73,8 +72,9 @@ export const FlipCard = (props: FlipCardProps) => {
         >
           <DetailsCard
             pokemon={merged.pokemon}
+            user={merged.user}
             selectedPokemons={merged.selectedPokemons}
-            isSelected={isSelected}
+            isSelected={isSelected()}
             pokemonsInDeck={merged.pokemonsInDeck}
             removeFromDeck={merged.removeFromDeck}
           />

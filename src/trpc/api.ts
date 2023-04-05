@@ -12,7 +12,7 @@ const getBaseUrl = () => {
   return `http://localhost:${import.meta.env.PORT ?? 3000}`; // dev SSR should use localhost
 };
 
-export const trpc = createTRPCProxyClient<AppRouter>({
+export const trpc = (cookie = "") => createTRPCProxyClient<AppRouter>({
   transformer: superjson,
 
   links: [
@@ -23,6 +23,11 @@ export const trpc = createTRPCProxyClient<AppRouter>({
     }),
     httpBatchLink({
       url: `${getBaseUrl()}/api/trpc`,
+      headers() {
+        return {
+          cookie,
+        }
+      }
     }),
   ],
 });

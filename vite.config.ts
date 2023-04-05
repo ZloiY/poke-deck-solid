@@ -17,5 +17,5 @@ export default defineConfig({
       ]
     })
   ],
-  ssr: { external: ["@prisma/client", "@trpc/client", "@trpc/server"] },
+  ssr: { external: ["@prisma/client"] },
 });

@@ -29,12 +29,12 @@ export const Input = (props: InputProps) => {
 
   return (
     <div class={twMerge("flex flex-col gap-1", local.containerStyle)}>
-      <Show when={local.label}>
+      <Show when={!!local.label}>
         <label
           for={others.name}
           class={twMerge("text-lg font-medium", local.labelStyles)}
         >
-          {props.label}
+          {local.label}
         </label>
       </Show>
       <div class="relative w-full">
