@@ -65,10 +65,9 @@ const getPage = (location: Location) => {
   return page;
 }
 
-export function routeData({ params, location }: RouteDataArgs) {
+export function routeData({ params }: RouteDataArgs) {
   const [searchParams] = useSearchParams();
-  const serverData = createServerData$(async (key, { request }) => {
-    if (key[0] != null) {
+  const emptyDecks = createServerData$(async (key, { request }) => {
     const session = await cookieSessionStorage.getSession(request.headers.get("Cookie"));
     const user = {
       id: session.get("id") as string,
@@ -76,25 +75,29 @@ export function routeData({ params, location }: RouteDataArgs) {
     }
     const pokemonApi = new PokemonClient();
     const caller = appRouter.createCaller({ session: user, prisma, pokemonApi });
-    const [pokemons, emptyDecks, pokemonsInCurrentDeck] = await Promise.all([
-      key[0] ? caller.pokemon.getPokemonList({ offset: +key[0] * 15, limit: 15,
-        searchQuery: key[1] as string })
-        : Promise.resolve([]),
-      caller.deck.getEmptyUserDecks({ numberOfEmptySlots: 20 }),
-      caller.pokemon.getPokemonsByDeckId(key[2] ?? "" ),
-    ]);
-    return { pokemons, emptyDecks, pokemonsInCurrentDeck };
-    }
+    return await  caller.deck.getEmptyUserDecks({ numberOfEmptySlots: 20 });
+  });
+  const cards = createServerData$(async (key) => {
+    const pokemonApi = new PokemonClient();
+    const caller = appRouter.createCaller({ session: null, prisma, pokemonApi });
+    return await caller.pokemon
+      .getPokemonList({ offset: +key[0] * 15, limit: 15, searchQuery: key[1] as string });
   },
-  { key: () => [params.page, searchParams.search, searchParams.deckId] });
-  return serverData;
+  { key: () => [params.page, searchParams.search] });
+  const pokemonsInCurrentDeck = createServerData$(async (key) => {
+    const pokemonApi = new PokemonClient();
+    const caller = appRouter.createCaller({ session: null, prisma, pokemonApi });
+    return await caller.pokemon.getPokemonsByDeckId(key[0] ?? "");
+  },
+  { key: () => [searchParams.deckId] });
+  return { emptyDecks, cards, pokemonsInCurrentDeck };
 };
 
 const totalLength = 1275;
 const limit = 15;
 const totalPages = Math.ceil(totalLength / limit);
 export default function Home() {
-  const fetchedData = useRouteData<typeof routeData>();
+  const { cards, emptyDecks, pokemonsInCurrentDeck } = useRouteData<typeof routeData>();
   const sereverEvent = useServerContext();
   const [user] = createResource(async () => {
     const cookie = isServer ? sereverEvent.request.headers.get("Cookie") : document.cookie;
@@ -168,7 +171,7 @@ export default function Home() {
 
   return (
     <div class="flex flex-col h-full w-full">
-      <Show when={fetchedData()?.emptyDecks?.length == 0 && !location.query.deckId}>
+      <Show when={emptyDecks()?.length == 0 && !location.query.deckId}>
         <Suspense>
           <CreateDeck
             title="Create Deck"
@@ -178,7 +181,7 @@ export default function Home() {
           />
         </Suspense>
       </Show>
-      <Show when={fetchedData()?.emptyDecks?.length != 0 && location.query.deckId}>
+      <Show when={emptyDecks()?.length != 0 && location.query.deckId}>
         <Suspense>
           <AddCards
             title="Add Cards to Deck"
@@ -192,7 +195,7 @@ export default function Home() {
         <SearchBar search={searchParams.search} onChange={onSearch}/>
       </div>
       <FixedButton
-        existingPokemonsLength={fetchedData()?.pokemonsInCurrentDeck.length ?? 0}
+        existingPokemonsLength={pokemonsInCurrentDeck()?.length ?? 0}
         onClick={() => toggleModal(true)}
       />
       <PaginationButtons
@@ -212,12 +215,12 @@ export default function Home() {
         }}
       >
        <CardsGrid>
-         <For each={fetchedData()?.pokemons} fallback={<Spinner/>}>
+         <For each={cards()} fallback={<Spinner/>}>
            {(pokemon, index) => (
              <FlipCard
                user={user()}
                selectedPokemons={pokemons()}
-               pokemonsInDeck={fetchedData()?.pokemonsInCurrentDeck}
+               pokemonsInDeck={pokemonsInCurrentDeck()}
                keepFlipped={flipState()}
                pokemon={pokemon}
              />
