@@ -1,6 +1,7 @@
 import { motion } from "@motionone/solid";
 import { Location, useIsRouting } from "@solidjs/router";
 import { createEffect, createMemo, createResource, createSignal, For, lazy,  Show, Suspense } from "solid-js";
+import { isServer } from "solid-js/web";
 import { createRouteData, refetchRouteData,
   RouteDataArgs,
   useLocation, useNavigate, useRouteData, useSearchParams, useServerContext } from "solid-start";
@@ -16,7 +17,10 @@ import { trpc } from "~/trpc/api";
 import { flipState } from "~/utils/flipStore";
 import { pokemons } from "~/utils/selectedPokemonsStore";
 import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
-import { isServer } from "solid-js/web";
+import { appRouter } from "~/trpc/router";
+import { prisma } from "~/db";
+import { PokemonClient } from "pokenode-ts";
+import { createServerData$ } from "solid-start/server";
 
 const CreateDeck = lazy(() => import("~/components/Modals/CreateDeck"));
 const AddCards = lazy(() => import("~/components/Modals/AddCards"));
@@ -55,31 +59,35 @@ type PaginationState = "Initial" | "Next" | "Prev";
 
 const getPage = (location: Location) => {
   let page = +location.pathname.split('/')[2]
-  if (Number.isNaN(page)) {
+  if (Number.isNaN(page) || !page) {
     page = 0;
   }
   return page;
 }
 
-export function routeData({ location }: RouteDataArgs) {
+export function routeData({ params, location }: RouteDataArgs) {
   const [searchParams] = useSearchParams();
-  const page = createMemo(() => getPage(location));
-  const serverContext = useServerContext();
-  const cookie = isServer ? serverContext.request.headers.get("Cookie") : document.cookie;
-  const trpcClient = trpc(cookie ?? "");
-  return createRouteData(async (key) => {
-    const [emptyDecks, pokemons, pokemonsInCurrentDeck] = await Promise.all([
-      trpcClient.deck.getEmptyUserDecks.query({ numberOfEmptySlots: 20 }).catch(() => null),
-      trpcClient.pokemon.getPokemonList.query({
-        offset: +key[0]() * 15,
-        limit: 15,
-        searchQuery: key[1] as string,
-      }),
-      trpcClient.pokemon.getPokemonsByDeckId.query(searchParams.deckId ?? ""),
+  const serverData = createServerData$(async (key, { request }) => {
+    if (key[0] != null) {
+    const session = await cookieSessionStorage.getSession(request.headers.get("Cookie"));
+    const user = {
+      id: session.get("id") as string,
+      name: session.get("name") as string,
+    }
+    const pokemonApi = new PokemonClient();
+    const caller = appRouter.createCaller({ session: user, prisma, pokemonApi });
+    const [pokemons, emptyDecks, pokemonsInCurrentDeck] = await Promise.all([
+      key[0] ? caller.pokemon.getPokemonList({ offset: +key[0] * 15, limit: 15,
+        searchQuery: key[1] as string })
+        : Promise.resolve([]),
+      caller.deck.getEmptyUserDecks({ numberOfEmptySlots: 20 }),
+      caller.pokemon.getPokemonsByDeckId(key[2] ?? "" ),
     ]);
     return { pokemons, emptyDecks, pokemonsInCurrentDeck };
+    }
   },
-  { key: () => [page, searchParams.search] });
+  { key: () => [params.page, searchParams.search, searchParams.deckId] });
+  return serverData;
 };
 
 const totalLength = 1275;
