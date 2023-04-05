@@ -55,7 +55,7 @@ export const FlipCard = (props: FlipCardProps) => {
       >
         <PreviewCard pokemon={merged.pokemon}/>
       </div>
-        <div class="absolute top-0 z-30"
+        <div class="absolute opacity-0 top-0 z-30"
           use:flipMotion={{
             initial: { opacity: 0, rotateY: 180 },
             animate: {
