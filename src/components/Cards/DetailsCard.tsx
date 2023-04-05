@@ -11,14 +11,14 @@ import { BlankCard } from "./BlankCard";
 import { Switcher } from "../Switcher";
 import { selectPokemon, unSelectPokemon } from "~/utils/selectedPokemonsStore";
 
-export default function DetailsCard(props: {
+export const DetailsCard = (props: {
   pokemon: Pokemon,
   user?: Session,
   pokemonsInDeck?: PokemonDB[],
   selectedPokemons?: Pokemon[],
   isSelected?: boolean,
   removeFromDeck?: (pokemon: Pokemon) => void,
-}) {
+}) => {
   const [spriteKey, setSpriteKey] = createSignal(0);
   const pokemonAdded = createMemo(() =>
     !!props.selectedPokemons?.find(({ name }) => name == props.pokemon.name));

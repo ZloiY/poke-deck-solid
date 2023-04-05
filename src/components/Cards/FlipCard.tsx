@@ -1,9 +1,9 @@
-import { createEffect, createMemo, createSignal, lazy, mergeProps, Suspense } from "solid-js";
+import { createEffect, createMemo, createSignal, mergeProps } from "solid-js";
 import { spring } from "motion";
 import { motion } from "@motionone/solid";
 
 import { PreviewCard } from "./PreviewCard";
-const DetailsCard = lazy(() => import('./DetailsCard'));
+import { DetailsCard } from "./DetailsCard";
 
 type FlipCardProps = Parameters<typeof DetailsCard>[0] &
   Parameters<typeof PreviewCard>[0] & { keepFlipped?: FlipState };
@@ -55,7 +55,6 @@ export const FlipCard = (props: FlipCardProps) => {
       >
         <PreviewCard pokemon={merged.pokemon}/>
       </div>
-      <Suspense fallback={<PreviewCard pokemon={merged.pokemon}/>}>
         <div class="absolute top-0 z-30"
           use:flipMotion={{
             initial: { opacity: 0, rotateY: 180 },
@@ -79,7 +78,6 @@ export const FlipCard = (props: FlipCardProps) => {
             removeFromDeck={merged.removeFromDeck}
           />
         </div>
-      </Suspense>
     </div>
   );
 }
