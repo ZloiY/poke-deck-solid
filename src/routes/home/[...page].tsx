@@ -17,6 +17,7 @@ import { flipState } from "~/utils/flipStore";
 import { pokemons } from "~/utils/selectedPokemonsStore";
 import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
 import { isServer } from "solid-js/web";
+import { PokemonClient } from "pokenode-ts";
 
 const CreateDeck = lazy(() => import("~/components/Modals/CreateDeck"));
 const AddCards = lazy(() => import("~/components/Modals/AddCards"));
@@ -66,19 +67,29 @@ export function routeData({ location }: RouteDataArgs) {
   const page = createMemo(() => getPage(location));
   const serverContext = useServerContext();
   const cookie = isServer ? serverContext.request.headers.get("Cookie") : document.cookie;
+  const pokemonApi = new PokemonClient(); 
   const trpcClient = trpc(cookie ?? "");
   return createRouteData(async (key) => {
-    const [emptyDecks, pokemons, pokemonsInCurrentDeck] = await Promise.all([
-      trpcClient.deck.getEmptyUserDecks.query({ numberOfEmptySlots: 20 }).catch(() => null),
-      trpcClient.pokemon.getPokemonList.query({
-        offset: +key[0]() * 15,
-        limit: 15,
-        searchQuery: key[1] as string,
-      }),
-      trpcClient.pokemon.getPokemonsByDeckId.query(searchParams.deckId ?? ""),
-    ]);
-    return { pokemons, emptyDecks, pokemonsInCurrentDeck };
-  },
+    const session = await cookieSessionStorage.getSession(cookie);
+    if (session.get("id")) {
+     const [emptyDecks, pokemons, pokemonsInCurrentDeck] = await Promise.all([
+       trpcClient.deck.getEmptyUserDecks.query({ numberOfEmptySlots: 20 }).catch(() => null),
+       trpcClient.pokemon.getPokemonList.query({
+         offset: +key[0]() * 15,
+         limit: 15,
+         searchQuery: key[1] as string,
+       }),
+       trpcClient.pokemon.getPokemonsByDeckId.query(searchParams.deckId ?? ""),
+     ]);
+     return { pokemons, emptyDecks, pokemonsInCurrentDeck };
+    } else {
+      let pokemons = await(await pokemonApi.listPokemons(+key[0]() * 15, 15)).results;
+      pokemons = await Promise.all(
+        pokemons.map(({ name }) => pokemonApi.getPokemonByName(name))
+      );
+      return { pokemons, emptyDecks: [], pokemonsInCurrentDeck: [] }
+    }
+    },
   { key: () => [page, searchParams.search] });
 };
 
