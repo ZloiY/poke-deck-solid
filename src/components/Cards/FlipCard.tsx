@@ -44,7 +44,7 @@ export const FlipCard = (props: FlipCardProps) => {
           initial: { opacity: 0, rotateY: 0, },
           animate: {
             opacity: isHovered() == "Preview" ? 1 : 0,
-            perspective: "600px",
+            perspective: "300px",
             rotateY: isHovered() == "Preview" ? 0 : 180
           },
           transition: {

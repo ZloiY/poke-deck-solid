@@ -1,6 +1,6 @@
 import { motion } from "@motionone/solid";
 import { Location, useIsRouting } from "@solidjs/router";
-import { createEffect, createMemo, createResource, createSignal, For, lazy,  Show, Suspense } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, lazy,  onMount,  Show, Suspense } from "solid-js";
 import { isServer } from "solid-js/web";
 import { createRouteData, refetchRouteData,
   RouteDataArgs,
@@ -97,8 +97,10 @@ const totalLength = 1275;
 const limit = 15;
 const totalPages = Math.ceil(totalLength / limit);
 export default function Home() {
-  const { cards, emptyDecks, pokemonsInCurrentDeck } = useRouteData<typeof routeData>();
+  const { emptyDecks, pokemonsInCurrentDeck } = useRouteData<typeof routeData>();
   const sereverEvent = useServerContext();
+  const location = useLocation();
+  const page = createMemo(() => getPage(location));
   const [user] = createResource(async () => {
     const cookie = isServer ? sereverEvent.request.headers.get("Cookie") : document.cookie;
     const session = await cookieSessionStorage.getSession(cookie);
@@ -110,16 +112,23 @@ export default function Home() {
       return undefined;
     }
   });
+  const [cards, { mutate, refetch }] = createResource(async () => {
+    if (typeof window !== 'undefined') {
+      const searchQuery = location.query.search as string;
+      return await trpc("").pokemon.getPokemonList
+        .query({ offset: page() * 15, limit: 15, searchQuery });
+    } else {
+      return undefined;
+    }
+  });
 
   const navigate = useNavigate();
-  const location = useLocation();
   const isRouting = useIsRouting();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [paginationState, setPaginationState] = createSignal<PaginationState>("Initial");
   const [showModal, toggleModal] = createSignal(false);
 
-  const page = createMemo(() => getPage(location));
   const hasNextPage = createMemo(() => page() < totalPages);
   const hasPrevPage = createMemo(() => page() > 0);
 
@@ -127,6 +136,12 @@ export default function Home() {
 
   createEffect(() => {
     if (!isRouting()) {
+      const result = refetch();
+      //if (result && 'then' in result) {
+      //  result.then((pokemons) => mutate(pokemons));
+      //} else if (typeof result == "object") {
+      //  mutate(() => result ?? []);
+      //}
       setPaginationState("Initial");
     }
   });
@@ -172,24 +187,20 @@ export default function Home() {
   return (
     <div class="flex flex-col h-full w-full">
       <Show when={emptyDecks()?.length == 0 && !location.query.deckId}>
-        <Suspense>
-          <CreateDeck
-            title="Create Deck"
-            showModal={showModal()}
-            cards={pokemons()}
-            onClose={() => { toggleModal(false) }}
-          />
-        </Suspense>
+        <CreateDeck
+          title="Create Deck"
+          showModal={showModal()}
+          cards={pokemons()}
+          onClose={() => { toggleModal(false) }}
+        />
       </Show>
       <Show when={emptyDecks()?.length != 0 && location.query.deckId}>
-        <Suspense>
-          <AddCards
-            title="Add Cards to Deck"
-            showModal={showModal()}
-            deckId={location.query.deckId}
-            onClose={() => { toggleModal(false) }}
-          />
-        </Suspense>
+        <AddCards
+          title="Add Cards to Deck"
+          showModal={showModal()}
+          deckId={location.query.deckId}
+          onClose={() => { toggleModal(false) }}
+        />
       </Show>
       <div class="flex relative justify-center items-center">
         <SearchBar search={searchParams.search} onChange={onSearch}/>
@@ -214,19 +225,21 @@ export default function Home() {
          },
         }}
       >
-       <CardsGrid>
-         <For each={cards()} fallback={<Spinner/>}>
-           {(pokemon, index) => (
-             <FlipCard
-               user={user()}
-               selectedPokemons={pokemons()}
-               pokemonsInDeck={pokemonsInCurrentDeck()}
-               keepFlipped={flipState()}
-               pokemon={pokemon}
-             />
-           )}
-         </For>
-       </CardsGrid>
+      <Suspense fallback={<Spinner/>}>
+         <CardsGrid>
+           <For each={cards()}>
+             {(pokemon, index) => (
+               <FlipCard
+                 user={user()}
+                 selectedPokemons={pokemons()}
+                 pokemonsInDeck={pokemonsInCurrentDeck()}
+                 keepFlipped={flipState()}
+                 pokemon={pokemon}
+               />
+             )}
+           </For>
+         </CardsGrid>
+       </Suspense>
       </div>
     </div>
   )
