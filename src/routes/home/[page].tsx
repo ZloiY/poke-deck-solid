@@ -112,15 +112,15 @@ export default function Home() {
       return undefined;
     }
   });
-  const [cards, { mutate, refetch }] = createResource(async () => {
-    if (typeof window !== 'undefined') {
+  const [cards, { refetch }] = createResource(async () => {
+    if (!isServer) {
       const searchQuery = location.query.search as string;
       return await trpc("").pokemon.getPokemonList
         .query({ offset: page() * 15, limit: 15, searchQuery });
     } else {
-      return undefined;
+      return [];
     }
-  });
+  }, { initialValue: [] });
 
   const navigate = useNavigate();
   const isRouting = useIsRouting();
@@ -136,12 +136,7 @@ export default function Home() {
 
   createEffect(() => {
     if (!isRouting()) {
-      const result = refetch();
-      //if (result && 'then' in result) {
-      //  result.then((pokemons) => mutate(pokemons));
-      //} else if (typeof result == "object") {
-      //  mutate(() => result ?? []);
-      //}
+      refetch();
       setPaginationState("Initial");
     }
   });

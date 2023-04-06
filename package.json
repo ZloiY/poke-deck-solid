@@ -27,6 +27,7 @@
     "@prisma/client": "^4.9.0",
     "@solidjs/meta": "^0.28.2",
     "@solidjs/router": "^0.8.2",
+    "@tanstack/solid-virtual": "3.0.0-beta.54",
     "@thisbeyond/solid-select": "^0.13.0",
     "@trpc/client": "^10.18.0",
     "@trpc/server": "^10.18.0",
