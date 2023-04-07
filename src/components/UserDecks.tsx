@@ -50,7 +50,7 @@ export const UserDecks = () => {
   return (
     <>
       <Suspense>
-        <CreateDeck showModal={showModal()} onClose={() => toggleModal(false)}/>
+        <CreateDeck title="Create Deck" showModal={showModal()} onClose={() => toggleModal(false)}/>
       </Suspense>
       <div class="border-2 rounded-xl border-purple-900 bg-purple-800/60 p-2 pb-0 relative w-full">
         <Show when={removingDeck.pending || userDecks.loading}>
