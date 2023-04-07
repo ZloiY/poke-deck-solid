@@ -1,5 +1,6 @@
-import { Navigate } from "solid-start";
+import { Navigate, useLocation } from "solid-start";
 
 export default function NavigateToHomeZero() {
-  return <Navigate href="/home/0"/>
+  const location = useLocation();
+  return <Navigate href={`/home/0${location.search}`}/>
 }

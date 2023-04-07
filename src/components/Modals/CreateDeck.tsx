@@ -68,7 +68,7 @@ export default function CreateDeck(props: CreateDeckProps) {
              creating.error?.fieldErrors?.name && "items-center",
             )}
           >
-            <input type="hidden" name="cards" value={JSON.stringify(props.cards)}/>
+            <input type="hidden" name="cards" value={JSON.stringify(props.cards ?? [])}/>
             <Input
               label="Deck name:"
               id="name"

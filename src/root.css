@@ -17,24 +17,32 @@ body {
 }
 
 .solid-select.solid-select-container {
-  @apply text-purple-900 text-xl font-fredoka;
+  @apply text-white text-xl font-fredoka;
 }
 
-.solid-select.solid-select-control {
-  @apply outline-none border-purple-900 border-2 rounded-xl bg-purple-500
+.solid-select .solid-select-control {
+  @apply outline-purple-900 border-purple-900 border-2 rounded-xl bg-purple-500
     hover:border-yellow-500 active:border-yellow-400 p-2;
 }
 
-.solid-select.solid-select-placeholer {
-  @apply font-coiny text-purple-900 text-xl;
+.solid-select .solid-select-placeholer {
+  @apply font-coiny text-purple-900 text-xl bg-purple-500;
 }
 
-.solid-select.solid-select-list {
-  @apply absolute min-w-full bg-purple-500 border-2 rounded-b-xl border-t-0
-    max-h-20 p-2 overflow-y-auto text-purple-900;
+.solid-select .solid-select-list {
+  @apply absolute min-w-full bg-purple-500 border-purple-900 border-2 rounded-xl mt-2
+    outline-purple-900 max-h-52 p-0 overflow-y-auto text-purple-900;
 }
 
-.solid-select.solid-select-option {
-  @apply hover:bg-purple-900 hover:text-yellow-500 hover:cursor-pointer;
+.solid-select .solid-select-option:hover {
+  @apply bg-purple-900 text-yellow-500 cursor-pointer;
+}
+
+.solid-select .solid-select-option[data-focused=true] {
+  @apply bg-purple-500;
+}
+
+.solid-select .solid-select-list-placeholder {
+  @apply text-white text-xl;
 }
 

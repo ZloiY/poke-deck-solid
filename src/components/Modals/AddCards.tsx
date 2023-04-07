@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, For, Show, splitProps } from "solid-js";
+import { createEffect, createResource, createSignal, For, onMount, Show, splitProps, Suspense } from "solid-js";
 import { Deck } from "@prisma/client";
 
 import Remove from "@icons/close-circle.svg";
@@ -12,19 +12,26 @@ import { Button } from "../Button";
 import { PreviewCard } from "../Cards/PreviewCard";
 import { createRouteAction, redirect } from "solid-start";
 import { pushNewNotification } from "~/utils/notificationStore";
+import { DeckCard } from "../Cards/Decks/DeckCard";
+import { BlankDeckCard } from "../Cards/Decks/BlankDeckCard";
 
 type AddCardsProps = Omit<Parameters<typeof ContainerModal>[0], 'children'>
  & { deckId: string };
 
 export default function AddCards(props: AddCardsProps) {
-  const trpcClient = trpc(document.cookie);
   const [local, containerProps] = splitProps(props, ["deckId"]);
-  const [data] = createResource(async () =>
-    await trpcClient.deck.getUserDecks.query({ limit: 20 }));
+  const [decks, { refetch }] = createResource(async () => {
+    if (typeof window !== 'undefined') {
+      return await trpc(document.cookie).deck.getUserDecks.query({ limit: 20 })
+         .then((response) => response.decks);
+    } else {
+      return [];
+    }
+  });
   const [selectedDeck, setSelectedDeck] = createSignal<Deck>();
 
   const [addingPokemons, addPokemons] = createRouteAction(async () => {
-    const message = await trpcClient.deck.addCardsToDecks.mutate({
+    const message = await trpc(document.cookie).deck.addCardsToDecks.mutate({
         cards: pokemons().map((pokemon) => ({
           name: pokemon.name,
           imageUrl: pokemon.sprites.other?.["official-artwork"].front_default
@@ -42,9 +49,13 @@ export default function AddCards(props: AddCardsProps) {
     }
   });
 
+  onMount(() => {
+    refetch();
+  });
+
   createEffect(() => {
-    if (data.state == "ready") {
-      const currentDeck = data().decks.find((deck) => deck.id == local.deckId);
+    if (decks.state == "ready") {
+      const currentDeck = decks().find((deck) => deck.id == local.deckId);
       if (currentDeck) {
         setSelectedDeck(currentDeck);
       }
@@ -55,22 +66,26 @@ export default function AddCards(props: AddCardsProps) {
     <ContainerModal {...containerProps}>
       <div class="flex flex-col gap-5 min-w-[450px] max-w-[720px] px-2 pb-4">
         <div class="flex gap-10 w-full px-1">
-          <Show when={data.state == "ready"} fallback={<Spinner/>}>
+          <Show when={decks.state == "ready"} fallback={<Spinner/>}>
             <>
-              {/*{selectedDeck && (
-                <DeckCard
-                  className="w-32 h-52 border-yellow-500 border-2"
-                  notInteractive={true}
-                  deck={selectedDeck}
-                />
-              )}*/}
+              <Suspense fallback={<BlankDeckCard 
+                    className="w-32 h-52 border-yellow-500 border-2"
+                />}>
+                <Show when={selectedDeck()}> 
+                  <DeckCard
+                    className="w-32 h-52 border-yellow-500 border-2"
+                    notInteractive={true}
+                    deck={selectedDeck()!}
+                  />
+                </Show>
+              </Suspense>
               <Select
                 selectedItem={selectedDeck()}
                 className="w-64"
                 placeholder="Select deck..."
                 label="Select deck where you want to add Pokemons"
                 onSelect={setSelectedDeck}
-                items={data()?.decks ?? []}
+                items={decks() ?? []}
               />
             </>
           </Show>

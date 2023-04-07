@@ -1,5 +1,5 @@
 import { useNavigate } from "solid-start";
-import { createResource, createSignal, For, Show } from "solid-js";
+import { createResource, createSignal, For, Show, Suspense } from "solid-js";
 import { twMerge } from "tailwind-merge";
 import { Deck } from "@prisma/client";
 import { motion } from "@motionone/solid";
@@ -104,31 +104,33 @@ export const FilledDeckCard = (props: DeckCard<Deck & { username?: string }>) =>
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <For each={firstSixOrLess()} fallback={<Spinner className="text-white"/>}>
-                {(decks, index) => (
-                  <div
-                    class="absolute"
-                    use:movingCards={{
-                      animate: {
-                        y: translateY(index()),
-                        x: translateX(index()),
-                        rotate: rotate(index()),
-                        zIndex: isHovered() ? 2 : 1,
-                      }
-                    }}
-                  >
-                    <PreviewCard
-                      className={twMerge(
-                        "w-40 h-60 pb-0 text-xl border-2 rounded-xl border-yellow-500",
-                        props.notInteractive && "w-14 h-24 text-xs border",
-                      )}
-                      pokemon={decks}
-                      nameOnSide={isHovered()}
-                      notInteractive
-                    />
-                  </div>
-                )}
-          </For>
+          <Suspense fallback={<Spinner className="text-white"/>}>
+            <For each={firstSixOrLess()} fallback={<Spinner className="text-white"/>}>
+                  {(decks, index) => (
+                    <div
+                      class="absolute"
+                      use:movingCards={{
+                        animate: {
+                          y: translateY(index()),
+                          x: translateX(index()),
+                          rotate: rotate(index()),
+                          zIndex: isHovered() ? 2 : 1,
+                        }
+                      }}
+                    >
+                      <PreviewCard
+                        className={twMerge(
+                          "w-40 h-60 pb-0 text-xl border-2 rounded-xl border-yellow-500",
+                          props.notInteractive && "w-14 h-24 text-xs border",
+                        )}
+                        pokemon={decks}
+                        nameOnSide={isHovered()}
+                        notInteractive
+                      />
+                    </div>
+                  )}
+            </For>
+          </Suspense>
         </div>
         <Show when={props.deck?.username}>
           <p class="text-2xl">Owner: {props.deck?.username}</p>

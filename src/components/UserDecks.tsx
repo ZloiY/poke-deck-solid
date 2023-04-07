@@ -53,11 +53,11 @@ export const UserDecks = () => {
         <CreateDeck title="Create Deck" showModal={showModal()} onClose={() => toggleModal(false)}/>
       </Suspense>
       <div class="border-2 rounded-xl border-purple-900 bg-purple-800/60 p-2 pb-0 relative w-full">
-        <Show when={removingDeck.pending || userDecks.loading}>
+        <Suspense fallback={
           <div class="backdrop-blur-md flex justify-center items-center absolute top-0 left-0 w-full h-full z-50">
-            <Spinner class="w-60 h-60 text-orange-500" />
+            <Spinner className="w-60 h-60 text-orange-500" />
           </div>
-        </Show>
+        }>
         <div class="flex justify-between items-center">
             <span class="font-coiny text-3xl">Your Decks:</span>
             <span class="font-coiny text-3xl font-normal">
@@ -98,6 +98,7 @@ export const UserDecks = () => {
             </For>
             </div>
         </div>
+        </Suspense>
       </div>
       </>
   );

@@ -21,14 +21,13 @@ export const Select = <T extends { id: string | number }>(props: SelectProps<T>)
         <label class="text-white text-2xl font-coiny">{props.label}</label>
       </Show>
       <SolidSelect
+        format={(value) => value.name}
         class="solid-select"
-        readonly={true}
         id={props.id}
         name={props.name}
         initialValue={props.selectedItem}
         isOptionDisabled={(item) => !!(props.selectedItem?.id && props.selectedItem.id == item.id)}
         placeholder={props.placeholder ?? "Select item"}
-        optionToValue={(value) => value.name}
         options={props.items}
         onChange={props.onSelect}
       />

@@ -18,7 +18,7 @@ export default function Deck() {
 
   return (
     <HeaderLayout title="PokeDeck Decks" user={user()}>
-      <Suspense fallback={<Spinner/>}>
+      <Suspense fallback={<Spinner className="w-96 h-96"/>}>
         <Outlet />
       </Suspense>
     </HeaderLayout>

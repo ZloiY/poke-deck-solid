@@ -77,33 +77,8 @@ export function routeData({ params }: RouteDataArgs) {
     const caller = appRouter.createCaller({ session: user, prisma, pokemonApi });
     return await  caller.deck.getEmptyUserDecks({ numberOfEmptySlots: 20 });
   });
-  const cards = createServerData$(async (key) => {
-    const pokemonApi = new PokemonClient();
-    const caller = appRouter.createCaller({ session: null, prisma, pokemonApi });
-    return await caller.pokemon
-      .getPokemonList({ offset: +key[0] * 15, limit: 15, searchQuery: key[1] as string });
-  },
-  { key: () => [params.page, searchParams.search] });
-  const pokemonsInCurrentDeck = createServerData$(async (key) => {
-    const pokemonApi = new PokemonClient();
-    const caller = appRouter.createCaller({ session: null, prisma, pokemonApi });
-    return await caller.pokemon.getPokemonsByDeckId(key[0] ?? "");
-  },
-  { key: () => [searchParams.deckId] });
-  return { emptyDecks, cards, pokemonsInCurrentDeck };
-};
-
-const totalLength = 1275;
-const limit = 15;
-const totalPages = Math.ceil(totalLength / limit);
-export default function Home() {
-  const { emptyDecks, pokemonsInCurrentDeck } = useRouteData<typeof routeData>();
-  const sereverEvent = useServerContext();
-  const location = useLocation();
-  const page = createMemo(() => getPage(location));
-  const [user] = createResource(async () => {
-    const cookie = isServer ? sereverEvent.request.headers.get("Cookie") : document.cookie;
-    const session = await cookieSessionStorage.getSession(cookie);
+  const user = createServerData$(async (_, { request }) => {
+    const session = await cookieSessionStorage.getSession(request.headers.get("Cookie"));
     const id = session.get("id");
     const name = session.get("name");
     if (id && name) {
@@ -112,6 +87,22 @@ export default function Home() {
       return undefined;
     }
   });
+  const pokemonsInCurrentDeck = createServerData$(async (key) => {
+    const pokemonApi = new PokemonClient();
+    const caller = appRouter.createCaller({ session: null, prisma, pokemonApi });
+    return await caller.pokemon.getPokemonsByDeckId(key[0] ?? "");
+  },
+  { key: () => [searchParams.deckId] });
+  return { emptyDecks, pokemonsInCurrentDeck, user };
+};
+
+const totalLength = 1275;
+const limit = 15;
+const totalPages = Math.ceil(totalLength / limit);
+export default function Home() {
+  const { emptyDecks, pokemonsInCurrentDeck, user } = useRouteData<typeof routeData>();
+  const location = useLocation();
+  const page = createMemo(() => getPage(location));
   const [cards, { refetch }] = createResource(async () => {
     if (!isServer) {
       const searchQuery = location.query.search as string;
@@ -182,20 +173,24 @@ export default function Home() {
   return (
     <div class="flex flex-col h-full w-full">
       <Show when={emptyDecks()?.length == 0 && !location.query.deckId}>
-        <CreateDeck
-          title="Create Deck"
-          showModal={showModal()}
-          cards={pokemons()}
-          onClose={() => { toggleModal(false) }}
-        />
+        <Suspense>
+          <CreateDeck
+            title="Create Deck"
+            showModal={showModal()}
+            cards={pokemons()}
+            onClose={() => { toggleModal(false) }}
+          />
+        </Suspense>
       </Show>
       <Show when={emptyDecks()?.length != 0 && location.query.deckId}>
-        <AddCards
-          title="Add Cards to Deck"
-          showModal={showModal()}
-          deckId={location.query.deckId}
-          onClose={() => { toggleModal(false) }}
-        />
+        <Suspense>
+          <AddCards
+            title="Add Cards to Deck"
+            showModal={showModal()}
+            deckId={location.query.deckId}
+            onClose={() => { toggleModal(false) }}
+          />
+        </Suspense>
       </Show>
       <div class="flex relative justify-center items-center">
         <SearchBar search={searchParams.search} onChange={onSearch}/>
