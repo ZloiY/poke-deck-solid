@@ -1,8 +1,7 @@
 import { motion } from "@motionone/solid";
 import { Location, useIsRouting } from "@solidjs/router";
-import { createEffect, createMemo, createResource, createSignal, For, lazy,  onMount,  Show, Suspense } from "solid-js";
-import { isServer } from "solid-js/web";
-import { createRouteData, refetchRouteData,
+import { createEffect, createMemo, createSignal, For, lazy, Show, Suspense } from "solid-js";
+import { refetchRouteData,
   RouteDataArgs,
   useLocation, useNavigate, useRouteData, useSearchParams, useServerContext } from "solid-start";
 import { FlipCard } from "~/components/Cards/FlipCard";
@@ -13,7 +12,6 @@ import { CardsGrid } from "~/components/CardsGrid";
 import { PaginationButtons } from "~/components/PaginationButtons";
 import { SearchBar } from "~/components/SearchBar";
 import { Spinner } from "~/components/Spinner";
-import { trpc } from "~/trpc/api";
 import { flipState } from "~/utils/flipStore";
 import { pokemons } from "~/utils/selectedPokemonsStore";
 import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
@@ -21,6 +19,7 @@ import { appRouter } from "~/trpc/router";
 import { prisma } from "~/db";
 import { PokemonClient } from "pokenode-ts";
 import { createServerData$ } from "solid-start/server";
+import { useUser } from "~/actions/useUser";
 
 const CreateDeck = lazy(() => import("~/components/Modals/CreateDeck"));
 const AddCards = lazy(() => import("~/components/Modals/AddCards"));
@@ -78,40 +77,32 @@ export function routeData({ params }: RouteDataArgs) {
     return await  caller.deck.getEmptyUserDecks({ numberOfEmptySlots: 20 });
   });
   const user = createServerData$(async (_, { request }) => {
-    const session = await cookieSessionStorage.getSession(request.headers.get("Cookie"));
-    const id = session.get("id");
-    const name = session.get("name");
-    if (id && name) {
-      return { id, name } as Session;
-    } else {
-      return undefined;
-    }
+    return await useUser(request);
   });
+  const cards = createServerData$(async (key, { request }) => {
+    const session = await useUser(request);
+    const pokemonApi = new PokemonClient();
+    const caller = appRouter.createCaller({ session, prisma, pokemonApi })
+    return await caller.pokemon
+      .getPokemonList({ limit: 15, offset: +key[0] * 15, searchQuery: key[1] });
+  },
+  { key: () => [params.page, searchParams.search] });
   const pokemonsInCurrentDeck = createServerData$(async (key) => {
     const pokemonApi = new PokemonClient();
     const caller = appRouter.createCaller({ session: null, prisma, pokemonApi });
     return await caller.pokemon.getPokemonsByDeckId(key[0] ?? "");
   },
   { key: () => [searchParams.deckId] });
-  return { emptyDecks, pokemonsInCurrentDeck, user };
+  return { emptyDecks, pokemonsInCurrentDeck, user, cards };
 };
 
 const totalLength = 1275;
 const limit = 15;
 const totalPages = Math.ceil(totalLength / limit);
 export default function Home() {
-  const { emptyDecks, pokemonsInCurrentDeck, user } = useRouteData<typeof routeData>();
+  const { emptyDecks, pokemonsInCurrentDeck, user, cards } = useRouteData<typeof routeData>();
   const location = useLocation();
   const page = createMemo(() => getPage(location));
-  const [cards, { refetch }] = createResource(async () => {
-    if (!isServer) {
-      const searchQuery = location.query.search as string;
-      return await trpc("").pokemon.getPokemonList
-        .query({ offset: page() * 15, limit: 15, searchQuery });
-    } else {
-      return [];
-    }
-  }, { initialValue: [] });
 
   const navigate = useNavigate();
   const isRouting = useIsRouting();
@@ -125,13 +116,8 @@ export default function Home() {
 
   const moveCards = motion;
 
-  onMount(() => {
-    refetch();
-  });
-
   createEffect(() => {
     if (!isRouting()) {
-      refetch();
       setPaginationState("Initial");
     }
   });
