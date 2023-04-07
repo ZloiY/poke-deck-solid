@@ -69,11 +69,11 @@ export function routeData({ params }: RouteDataArgs) {
   const [searchParams] = useSearchParams();
   const emptyDecks = createServerData$(async (key, { request }) => {
     const session = await cookieSessionStorage.getSession(request.headers.get("Cookie"));
+    const pokemonApi = new PokemonClient();
     const user = {
       id: session.get("id") as string,
       name: session.get("name") as string,
     }
-    const pokemonApi = new PokemonClient();
     const caller = appRouter.createCaller({ session: user, prisma, pokemonApi });
     return await  caller.deck.getEmptyUserDecks({ numberOfEmptySlots: 20 });
   });
