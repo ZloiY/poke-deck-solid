@@ -1,7 +1,7 @@
 import { useNavigate } from "solid-start";
-import { createResource, createSignal, For, Show, Suspense } from "solid-js";
+import { createEffect, createResource, createSignal, For, onMount, Show, Suspense } from "solid-js";
 import { twMerge } from "tailwind-merge";
-import { Deck } from "@prisma/client";
+import { Deck, Pokemon } from "@prisma/client";
 import { motion } from "@motionone/solid";
 
 import Add from "@icons/add-card.svg";
@@ -30,7 +30,7 @@ const getRandomShift = () => Math.ceil(Math.random() * 10 - 5);
 
 export const FilledDeckCard = (props: DeckCard<Deck & { username?: string }>) => {
   const navigate = useNavigate();
-  const [firstSixOrLess] = createResource(async () => {
+  const [firstSixOrLess, { refetch }] = createResource(async () => {
     if (typeof window !== 'undefined') {
       const pokemons = await trpc(document.cookie)
         .pokemon.getPokemonsByDeckId.query(props.deck.id);
@@ -40,6 +40,10 @@ export const FilledDeckCard = (props: DeckCard<Deck & { username?: string }>) =>
   }, { initialValue: [] })
 
   const movingCards = motion;
+
+  onMount(() => {
+    refetch();
+  });
 
   const [isHovered, setHovered] = createSignal(false);
   
@@ -58,9 +62,9 @@ export const FilledDeckCard = (props: DeckCard<Deck & { username?: string }>) =>
 
   const goToTheDeck = () => {
     if (props.deck.username) {
-      navigate(`/pokemons/${props.deck.id}`);
-    } else {
       navigate(`/decks/${props.deck.id}`);
+    } else {
+      navigate(`/pokemons/${props.deck.id}`);
     }
   };
 
@@ -104,33 +108,31 @@ export const FilledDeckCard = (props: DeckCard<Deck & { username?: string }>) =>
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          <Suspense fallback={<Spinner className="text-white"/>}>
-            <For each={firstSixOrLess()} fallback={<Spinner className="text-white"/>}>
-                  {(decks, index) => (
-                    <div
-                      class="absolute"
-                      use:movingCards={{
-                        animate: {
-                          y: translateY(index()),
-                          x: translateX(index()),
-                          rotate: rotate(index()),
-                          zIndex: isHovered() ? 2 : 1,
-                        }
-                      }}
-                    >
-                      <PreviewCard
-                        className={twMerge(
-                          "w-40 h-60 pb-0 text-xl border-2 rounded-xl border-yellow-500",
-                          props.notInteractive && "w-14 h-24 text-xs border",
-                        )}
-                        pokemon={decks}
-                        nameOnSide={isHovered()}
-                        notInteractive
-                      />
-                    </div>
+          <For each={firstSixOrLess()} fallback={<Spinner className="text-white"/>}>
+            {(cards, index) => (
+              <div
+                class="absolute"
+                use:movingCards={{
+                  animate: {
+                    y: translateY(index()),
+                    x: translateX(index()),
+                    rotate: rotate(index()),
+                    zIndex: isHovered() ? 2 : 1,
+                  }
+                }}
+              >
+                <PreviewCard
+                  className={twMerge(
+                    "w-40 h-60 pb-0 text-xl border-2 rounded-xl border-yellow-500",
+                    props.notInteractive && "w-14 h-24 text-xs border",
                   )}
-            </For>
-          </Suspense>
+                  pokemon={cards}
+                  nameOnSide={isHovered()}
+                  notInteractive
+                />
+              </div>
+            )}
+          </For>
         </div>
         <Show when={props.deck?.username}>
           <p class="text-2xl">Owner: {props.deck?.username}</p>

@@ -31,7 +31,6 @@ export const FlipCard = (props: FlipCardProps) => {
       toggleHovered("Preview");
     }
   };
-
   return (
     <div
       class="relative"

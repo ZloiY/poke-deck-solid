@@ -125,6 +125,10 @@ export default function Home() {
 
   const moveCards = motion;
 
+  onMount(() => {
+    refetch();
+  });
+
   createEffect(() => {
     if (!isRouting()) {
       refetch();
@@ -182,7 +186,7 @@ export default function Home() {
           />
         </Suspense>
       </Show>
-      <Show when={emptyDecks()?.length != 0 && location.query.deckId}>
+      <Show when={location.query.deckId}>
         <Suspense>
           <AddCards
             title="Add Cards to Deck"
@@ -215,21 +219,19 @@ export default function Home() {
          },
         }}
       >
-      <Suspense fallback={<Spinner/>}>
-         <CardsGrid>
-           <For each={cards()}>
-             {(pokemon, index) => (
-               <FlipCard
-                 user={user()}
-                 selectedPokemons={pokemons()}
-                 pokemonsInDeck={pokemonsInCurrentDeck()}
-                 keepFlipped={flipState()}
-                 pokemon={pokemon}
-               />
-             )}
-           </For>
-         </CardsGrid>
-       </Suspense>
+       <CardsGrid>
+         <For each={cards()} fallback={<Spinner/>}>
+           {(pokemon, index) => (
+             <FlipCard
+               user={user()}
+               selectedPokemons={pokemons()}
+               pokemonsInDeck={pokemonsInCurrentDeck()}
+               keepFlipped={flipState()}
+               pokemon={pokemon}
+             />
+           )}
+         </For>
+       </CardsGrid>
       </div>
     </div>
   )

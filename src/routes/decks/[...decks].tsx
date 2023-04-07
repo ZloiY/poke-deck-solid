@@ -10,7 +10,7 @@ export default function UserDecksPage() {
        <UserDecks />
      </Suspense>
      <Suspense fallback={<Spinner/>}>
-       <OtherUsersDecks/>
+       <OtherUsersDecks />
      </Suspense>
     </div>
   )
