@@ -53,8 +53,8 @@ export const UserDecks = () => {
         <CreateDeck title="Create Deck" showModal={showModal()} onClose={() => toggleModal(false)}/>
       </Suspense>
       <div class="border-2 rounded-xl border-purple-900 bg-purple-800/60 p-2 pb-0 relative w-full">
-        <Suspense fallback={
-          <div class="backdrop-blur-md flex justify-center items-center absolute top-0 left-0 w-full h-full z-50">
+        <Show when={!removingDeck.pending || userDecks.loading} fallback={
+          <div class="backdrop-blur-md flex justify-center items-center z-50 h-[520px]">
             <Spinner className="w-60 h-60 text-orange-500" />
           </div>
         }>
@@ -77,28 +77,30 @@ export const UserDecks = () => {
                 class="h-full relative text-center text-3xl"
                 style={{ width: `${virtualColumn().getTotalSize()}px` }}
             >
-            <For each={virtualColumn().getVirtualItems()} fallback={<Spinner/>}>
-              {(virtualItem) => (
-                <div
-                    class="h-full"
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: `${virtualItem.size}px`,
-                        transform: `translateX(${virtualItem.start}px)`,
-                    }}
-                >
-                    <DeckCard
-                      deck={userDecks()?.[virtualItem.index]!}
-                      addCard={addPokemons}
-                      removeDeck={removeDeck} />
-                </div>
-              )}
-            </For>
+            <Suspense>
+              <For each={virtualColumn().getVirtualItems()} fallback={<Spinner/>}>
+                {(virtualItem) => (
+                  <div
+                      class="h-full"
+                      style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: `${virtualItem.size}px`,
+                          transform: `translateX(${virtualItem.start}px)`,
+                      }}
+                  >
+                      <DeckCard
+                        deck={userDecks()?.[virtualItem.index]!}
+                        addCard={addPokemons}
+                        removeDeck={removeDeck} />
+                  </div>
+                )}
+              </For>
+            </Suspense>
             </div>
         </div>
-        </Suspense>
+        </Show>
       </div>
       </>
   );

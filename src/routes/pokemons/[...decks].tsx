@@ -46,23 +46,25 @@ export default function UserDecks() {
       <Suspense>
         <CreateDeck showModal={showModal()} title="Create Deck" onClose={() => toggleModal(false)}/>
       </Suspense>
-      <Show when={decks.loading || removingDeck.pending}>
+      <Show when={!decks.loading || !removingDeck.pending} fallback={
         <div class="absolute inset-0 z-50 flex backdrop-blur-md justify-center items-center">
           <Spinner className="h-96 w-96 text-orange-500"/>
+        </div>}>
+        <div class={twMerge("mt-5", cardGridStyles)}>
+          <AddDeckCard onClick={() => toggleModal(true)}/>
+          <Suspense>
+            <For each={decks()}>
+              {(deck) => (
+                  <DeckCard
+                    addCard={addCards}
+                    removeDeck={removeDeck}
+                    deck={deck}
+                    />
+                  )}
+            </For>
+          </Suspense>
         </div>
       </Show>
-      <div class={twMerge("mt-5", cardGridStyles)}>
-        <AddDeckCard onClick={() => toggleModal(true)}/>
-        <For each={decks()}>
-          {(deck) => (
-            <DeckCard
-              addCard={addCards}
-              removeDeck={removeDeck}
-              deck={deck}
-            />
-          )}
-        </For>
-      </div>
     </>
   );
 };

@@ -66,43 +66,43 @@ export default function OtherUsersDecks() {
           Total decks: {decks()?.decksLength ?? 0}
         </span>
       </div>
-      <Suspense fallback={<Spinner class="mt-10 h-52 w-52"/>}>
-        <div
-          ref={parent}
-          class="w-full h-[520px] flex gap-5 overflow-x-scroll pb-4 scrollbar-thin scrollbar-thumb-purple-900 scrollbar-track-transparent"
-        >
-          <Show when={totalDecks().length > 0} fallback={
-            <div class="mt-[25%] w-full text-center font-coiny text-2xl">
-              Sorry there are no other users decks
-            </div>
-          }>
-            <div
-              class="h-full relative text-center text-3xl"
-              style={{ width: `${virtualColumn().getTotalSize()}px` }}
-            >
-              <For each={virtualColumn().getVirtualItems()} fallback={<Spinner class="h-52 w-52"/>}>
-                {(virtualItem) => (
-                  <div
-                    class="h-full"
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: `${virtualItem.size}px`,
-                      transform: `translateX(${virtualItem.start}px)`,
-                    }}
-                  >
-                    <DeckCard
-                      onClick={viewDeck}
-                      deck={totalDecks()[virtualItem.index]!}
-                    />
-                  </div>
-                )}
-              </For>
-            </div>
-          </Show>
-        </div>
-      </Suspense>
+      <div
+        ref={parent}
+        class="w-full h-[520px] flex gap-5 overflow-x-scroll pb-4 scrollbar-thin scrollbar-thumb-purple-900 scrollbar-track-transparent"
+      >
+        <Show when={totalDecks().length > 0} fallback={
+          <div class="mt-[25%] w-full text-center font-coiny text-2xl">
+            Sorry there are no other users decks
+          </div>
+        }>
+        <Suspense fallback={<Spinner className="mt-20"/>}>
+          <div
+            class="h-full relative text-center text-3xl"
+            style={{ width: `${virtualColumn().getTotalSize()}px` }}
+          >
+            <For each={virtualColumn().getVirtualItems()} fallback={<Spinner class="h-52 w-52"/>}>
+              {(virtualItem) => (
+                <div
+                  class="h-full"
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: `${virtualItem.size}px`,
+                    transform: `translateX(${virtualItem.start}px)`,
+                  }}
+                >
+                  <DeckCard
+                    onClick={viewDeck}
+                    deck={totalDecks()[virtualItem.index]!}
+                  />
+                </div>
+              )}
+            </For>
+          </div>
+          </Suspense>
+        </Show>
+      </div>
     </div>
   )
 }

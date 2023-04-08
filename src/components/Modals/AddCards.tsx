@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, For, onMount, Show, splitProps, Suspense } from "solid-js";
+import { createEffect, createResource, createSignal, For, onMount, Show, splitProps } from "solid-js";
 import { Deck } from "@prisma/client";
 
 import Remove from "@icons/close-circle.svg";
@@ -68,17 +68,15 @@ export default function AddCards(props: AddCardsProps) {
         <div class="flex gap-10 w-full px-1">
           <Show when={decks.state == "ready"} fallback={<Spinner/>}>
             <>
-              <Suspense fallback={<BlankDeckCard 
-                    className="w-32 h-52 border-yellow-500 border-2"
-                />}>
-                <Show when={selectedDeck()}> 
-                  <DeckCard
-                    className="w-32 h-52 border-yellow-500 border-2"
-                    notInteractive={true}
-                    deck={selectedDeck()!}
-                  />
-                </Show>
-              </Suspense>
+              <Show when={selectedDeck()} fallback={<BlankDeckCard 
+                  className="w-32 h-52 border-yellow-500 border-2"
+              />}> 
+                <DeckCard
+                  className="w-32 h-52 border-yellow-500 border-2"
+                  notInteractive={true}
+                  deck={selectedDeck()!}
+                />
+              </Show>
               <Select
                 selectedItem={selectedDeck()}
                 className="w-64"

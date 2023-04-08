@@ -143,22 +143,23 @@ export default function Home() {
   };
 
   const movingCards = createMemo((prev) => {
+    const width = typeof window !== 'undefined' ? window.screen.width : 0;
     switch (true) {
       case paginationState() == "Next": {
-        return [0, -5000];
+        return [0, -(width * 2)];
       }
       case paginationState() == "Prev": {
-        return [0, 5000];
+        return [0, (width * 2)];
       }
       case prev[1] > 0: {
-        return [-5000, 0];
+        return [-(width * 2), 0];
       }
       case prev[1] < 0: {
-        return [5000, 0];
+        return [(width * 2), 0];
       }
     }
     return [0,0];
-  },[0,0])
+  }, [0,0])
 
   return (
     <div class="flex flex-col h-full w-full">
@@ -205,19 +206,24 @@ export default function Home() {
          },
         }}
       >
-       <CardsGrid>
-         <For each={cards()} fallback={<Spinner/>}>
-           {(pokemon, index) => (
-             <FlipCard
-               user={user()}
-               selectedPokemons={pokemons()}
-               pokemonsInDeck={pokemonsInCurrentDeck()}
-               keepFlipped={flipState()}
-               pokemon={pokemon}
-             />
-           )}
-         </For>
-       </CardsGrid>
+       <Suspense fallback={
+         <div class="flex h-full w-full items-center justify-center">
+           <Spinner className="mt-20 h-52 w-52"/>
+         </div>}>
+         <CardsGrid>
+             <For each={cards()} fallback={<Spinner/>}>
+               {(pokemon, index) => (
+                 <FlipCard
+                   user={user()}
+                   selectedPokemons={pokemons()}
+                   pokemonsInDeck={pokemonsInCurrentDeck()}
+                   keepFlipped={flipState()}
+                   pokemon={pokemon}
+                 />
+               )}
+             </For>
+         </CardsGrid>
+       </Suspense>
       </div>
     </div>
   )

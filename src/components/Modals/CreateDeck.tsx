@@ -1,9 +1,11 @@
-import { Pokemon } from "pokenode-ts";
+import { Pokemon, PokemonClient } from "pokenode-ts";
 import { FormError } from "solid-start";
 import { createServerAction$, redirect } from "solid-start/server";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
-import { trpc } from "~/trpc/api";
+import { useUser } from "~/actions/useUser";
+import { prisma } from "~/db";
+import { appRouter } from "~/trpc/router";
 import { pushNewNotification } from "~/utils/notificationStore";
 import { Button } from "../Button";
 import { Checkbox } from "../Checkbox";
@@ -30,10 +32,12 @@ export default function CreateDeck(props: CreateDeckProps) {
       name,
       private: isprivate,
     };
-    const cookie = request.headers.get("Cookie") ?? "";
     const validatedFields = validationSchema.safeParse(fields);
+    const session = await useUser(request);
     if (validatedFields.success) {
-      const messageWithDeck = await trpc(cookie).deck.createDeck.mutate({
+      const pokemonApi = new PokemonClient();
+      const messageWithDeck = await appRouter.createCaller({ session, prisma, pokemonApi })
+        .deck.createDeck({
         ...validatedFields.data,
         cards: cards.map((pokemon: Pokemon) => ({
           name: pokemon.name,
