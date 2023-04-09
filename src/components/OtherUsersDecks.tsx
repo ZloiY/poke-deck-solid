@@ -1,42 +1,41 @@
 import { Deck } from "@prisma/client";
 import { createVirtualizer } from "@tanstack/solid-virtual";
-import { createEffect, createMemo, createResource, createSignal, For, onMount, Show, Suspense } from "solid-js";
+import { createEffect, createMemo, createResource, createSignal, For, onMount, Show, Suspense, untrack } from "solid-js";
 import { useNavigate } from "solid-start"
 import { trpc } from "~/trpc/api";
 import { DeckCard } from "./Cards/Decks/DeckCard"
 import { Spinner } from "./Spinner";
 
 export default function OtherUsersDecks() {
-  let parent: HTMLDivElement;
+  const [parent, setParent] = createSignal<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const [totalDecks, setTotalDecks] = createSignal<Deck[]>([]);
-  const [decks, { refetch }] = createResource(async (_,info): Promise<{
-    decks: Deck[], decksLength: number, nextCursor?: string
-  }> => {
+  const [source, setSource] = createSignal("");
+  const [decks, { refetch }] = createResource(source, async (sourceSignal) => {
     if (typeof window !== "undefined") {
-      const cursor = typeof info.value == 'string' ? info.value : undefined
       return await trpc(document.cookie).deck
-        .getOthersUsersDecks.query({ limit: 7, cursor })
-    } else {
-      return { decks: [], decksLength: 0, nextCursor: undefined };
+        .getOthersUsersDecks.query({ limit: 7, cursor: sourceSignal })
     }
-  }, { initialValue: { decks: [], decksLength: 0, nextCursor: undefined } })
+  }, { deferStream: true })
 
   onMount(() => {
     refetch();
   });
 
   createEffect(() => {
-    setTotalDecks((prevDecks) => prevDecks.concat(decks()?.decks));
-  })
+    if (decks?.()?.decks.length > 0 && !decks.loading) {
+      setTotalDecks((prevDecks) => prevDecks.concat(decks()?.decks));
+    }
+  });
 
-  const virtualColumn = createMemo(() => createVirtualizer({
-    count: totalDecks().length,
-    horizontal: true,
-    getScrollElement: () => parent,
-    estimateSize: () => 320,
-    overscan: 7,
-  }));
+  const virtualColumn = createMemo(() =>
+    createVirtualizer({
+      count: decks()?.nextCursor ? totalDecks().length + 1 : totalDecks().length,
+      horizontal: true,
+      getScrollElement: parent,
+      estimateSize: () => 320,
+      overscan: 7,
+    }));
 
   createEffect(() => {
     const items = virtualColumn().getVirtualItems();
@@ -44,13 +43,12 @@ export default function OtherUsersDecks() {
     if (!lastItem) {
       return;
     }
-
     if (
       lastItem.index >= totalDecks().length - 1 &&
       decks()?.nextCursor &&
       !decks.loading
     ) {
-      refetch({ value: decks()?.nextCursor });
+      setSource(decks()?.nextCursor);
     }
   });
 
@@ -67,7 +65,7 @@ export default function OtherUsersDecks() {
         </span>
       </div>
       <div
-        ref={parent}
+        use:setParent
         class="w-full h-[520px] flex gap-5 overflow-x-scroll pb-4 scrollbar-thin scrollbar-thumb-purple-900 scrollbar-track-transparent"
       >
         <Show when={totalDecks().length > 0} fallback={
@@ -81,7 +79,7 @@ export default function OtherUsersDecks() {
             style={{ width: `${virtualColumn().getTotalSize()}px` }}
           >
             <For each={virtualColumn().getVirtualItems()} fallback={<Spinner class="h-52 w-52"/>}>
-              {(virtualItem) => (
+              {(virtualItem) => virtualItem.index < totalDecks().length && (
                 <div
                   class="h-full"
                   style={{

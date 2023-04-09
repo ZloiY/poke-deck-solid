@@ -17,7 +17,7 @@ import { pokemons } from "~/utils/selectedPokemonsStore";
 import { cookieSessionStorage } from "~/utils/cookieSessionStorage";
 import { appRouter } from "~/trpc/router";
 import { prisma } from "~/db";
-import { PokemonClient } from "pokenode-ts";
+import { Pokemon, PokemonClient } from "pokenode-ts";
 import { createServerData$ } from "solid-start/server";
 import { useUser } from "~/actions/useUser";
 
@@ -46,7 +46,7 @@ const FixedButton = (props: {
        <Show when={!hovered()} fallback={<Check class="opacity-0 text-white hover:opacity-100 h-full w-full m-2"/>}>
          <p class="text-lg">
            {pokemons().length + props.existingPokemonsLength}/
-           {import.meta.env.PUBLIC_DECK_MAX_SIZE}
+           {20}
          </p>
        </Show>
       </div>
@@ -84,7 +84,20 @@ export function routeData({ params }: RouteDataArgs) {
     const pokemonApi = new PokemonClient();
     const caller = appRouter.createCaller({ session, prisma, pokemonApi })
     return await caller.pokemon
-      .getPokemonList({ limit: 15, offset: +key[0] * 15, searchQuery: key[1] });
+      .getPokemonList({ limit: 15, offset: +key[0] * 15, searchQuery: key[1] })
+      .then((pokemons) => pokemons.map((pokemon) => {
+        const { name, id, stats, height, weight, sprites, abilities } = pokemon;
+        return {
+          id,
+          name,
+          stats,
+          height,
+          weight,
+          sprites,
+          abilities
+        } as Pokemon
+      }
+    ));
   },
   { key: () => [params.page, searchParams.search] });
   const pokemonsInCurrentDeck = createServerData$(async (key) => {

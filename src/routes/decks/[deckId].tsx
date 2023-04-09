@@ -41,7 +41,7 @@ export default function OtherUserDeck() {
         <span>Deck name: {deckInfo()?.name ?? "..."}</span>
         <span>
           Deck size: {deckInfo()?.deckLength ?? "..."}/
-          {import.meta.env.PUBLIC_DECK_MAX_SIZE}
+          {20}
         </span>
       </div>
       <Show when={!pokemons.loading} fallback={<Spinner className="w-96 h-96"/>}>

@@ -141,7 +141,7 @@ export const FilledDeckCard = (props: DeckCard<Deck & { username?: string }>) =>
           {props.deck?.name}
         </p>
         <p class={twMerge("text-xl", props.notInteractive && "text-sm")}>
-          {props.deck?.deckLength}/{import.meta.env.PUBLIC_DECK_MAX_SIZE}
+          {props.deck?.deckLength}/{20}
         </p>
       </div>
       <Show when={props.removeDeck}>

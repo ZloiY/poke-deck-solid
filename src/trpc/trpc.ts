@@ -29,7 +29,6 @@ export const createTRPCContext = async (opts: FetchCreateContextFnOptions) => {
   const sessionStorage = await cookieSessionStorage.getSession(req.headers.get("Cookie"));
   const id = sessionStorage.get("id");
   const name = sessionStorage.get("name");
-  console.log(req.headers.get("Cookie"));
   if (id && name) {
     session = {
       id,

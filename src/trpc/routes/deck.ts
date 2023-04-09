@@ -29,7 +29,7 @@ export const deckRouter = createTRPCRouter({
                 name,
                 private: privateDeck,
                 isEmpty: false,
-                isFull: +import.meta.env.DECK_MAX_SIZE == cards.length,
+                isFull: +process.env.DECK_MAX_SIZE == cards.length,
                 deckLength: cards.length,
                 deck: {
                   create: cards,

@@ -40,7 +40,6 @@ export const UserDecks = () => {
     count: userDecks().length,
     getScrollElement: () => parent,
     estimateSize: () => 320,
-    overscan: 4,
   }));
 
   const addPokemons = (deckId: string) => {
@@ -61,7 +60,7 @@ export const UserDecks = () => {
         <div class="flex justify-between items-center">
             <span class="font-coiny text-3xl">Your Decks:</span>
             <span class="font-coiny text-3xl font-normal">
-                {userDecks()?.length}/{import.meta.env.PUBLIC_USER_MAX_DECKS}
+                {userDecks()?.length}/{20}
             </span>
         </div>
         <div
@@ -70,7 +69,7 @@ export const UserDecks = () => {
             class={`w-full h-[520px] flex gap-5 overflow-x-scroll overflow-y-hidden pb-4
               scrollbar-thin scrollbar-thumb-purple-900 scrollbar-track-transparent`}
         >
-          <Show when={userDecks()?.length != +import.meta.env.PUBLIC_USER_MAX_DECKS}>
+          <Show when={userDecks()?.length != 20}>
              <AddDeckCard onClick={() => toggleModal(true)} />
           </Show>
             <div

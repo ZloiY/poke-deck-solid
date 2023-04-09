@@ -10,7 +10,7 @@ const tokenScheme = z.object({
   numberOfDecks: z
     .number()
     .min(0)
-    .max(import.meta.env.USER_MAX_DECKS),
+    .max(process.env.USER_MAX_DECKS),
   exp: z.number(),
 });
 
