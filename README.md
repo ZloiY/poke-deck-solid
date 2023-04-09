@@ -1,30 +1,48 @@
-# SolidStart
+# PokeDeck App 
 
-Everything you need to build a Solid project, powered by [`solid-start`](https://start.solidjs.com);
+Another app where you can do different things with pokemons.
 
-## Creating a project
+## The tech stack
 
-```bash
-# create a new project in the current directory
-npm init solid@latest
+- [Solid-Start](https://start.solidjs.com/getting-started/what-is-solidstart)
+- [Prisma](https://prisma.io)
+- [Tailwind CSS](https://tailwindcss.com)
+- [tRPC](https://trpc.io)
+- [Zod](https://zod.dev/)
+- [@motionone/solid](https://motion.dev/solid/motion)
+- [Pokenode-ts](https://pokenode-ts.vercel.app/)
 
-# create a new project in my-app
-npm init solid@latest my-app
-```
 
-## Developing
+## How to launch
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+First thing first you need to install npm deps via:
 
-```bash
-npm run dev
+    pnpm install
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+Then you need to setup your `.env` by following `.env.example`.
+Setup the `schema.prisma` file for the preferable db. In my example we will use `sqlite`.
+To start using sqlite we need to do this change:
 
-## Building
+Remove
 
-Solid apps are built with _adapters_, which optimise your project for deployment to different environments.
+    shadowDatabaseUrl = env("SHADOW_DB_URL")
+    relationMode      = "prisma"
 
-By default, `npm run build` will generate a Node app that you can run with `npm start`. To use a different adapter, add it to the `devDependencies` in `package.json` and specify in your `vite.config.js`.
+Replace this
+
+    provider          = "mysql"
+with this
+
+    provider          = "sqlite"
+
+Also don't forget to create `db.sqlite` in `prisma/` directory.
+
+Remove the `prisma/migrations/` and launch
+
+    pnpx prisma generate
+
+And now you can run
+
+    pnpm run dev
+
+
